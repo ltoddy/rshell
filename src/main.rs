@@ -1,3 +1,8 @@
+pub mod cargo;
+pub mod repl;
+
+use crate::repl::Repl;
+
 fn main() {
-    println!("Hello, world!");
+    let repl = Repl::new();
 }
