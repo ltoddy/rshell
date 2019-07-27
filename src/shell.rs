@@ -1,11 +1,11 @@
-use std::io;
-use std::io::{stdin, stdout, BufRead, BufReader, Write};
+use std::io::{self, stdin, stdout, BufRead, BufReader, Write};
 
 use crate::repl::Repl;
 
 const IN: &str = "In: ";
 const OUT: &str = "Out: ";
 
+#[derive(Debug, Default)]
 pub struct Shell {
     buffer: String,
     repl: Repl,

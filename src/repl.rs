@@ -2,7 +2,7 @@ use std::io;
 
 use crate::cargo::Cargo;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Repl {
     body: Vec<String>,
     cursor: usize,
