@@ -2,9 +2,6 @@ use std::io;
 
 use crate::cargo::Cargo;
 
-const IN: &str = "In: ";
-const OUT: &str = "Out: ";
-
 #[derive(Clone, Debug)]
 pub struct Repl {
     body: Vec<String>,
@@ -21,7 +18,7 @@ impl Repl {
         }
     }
 
-    fn insert(&mut self, mut input: String) {
+    pub fn insert(&mut self, mut input: String) {
         input.insert(0, '\t');
         input.push('\n');
         self.body.insert(self.cursor, input);
@@ -29,21 +26,21 @@ impl Repl {
     }
 
     #[inline]
-    fn prepare_playground(&self) -> io::Result<()> {
+    pub fn prepare_playground(&self) -> io::Result<()> {
         self.cargo.new()
     }
 
-    fn reset(&mut self) {
+    fn _reset(&mut self) {
         self.prepare_playground()
             .expect("Error while resetting repl");
         *self = Self::new();
     }
 
-    fn show(&self) -> String {
-        format!("Current Repl Code: {}", self.body.clone().join(""))
+    pub fn show(&self) -> String {
+        format!("Current Repl Code:\n{}", self.body.clone().join(""))
     }
 
-    pub fn eval(&self, input: String) {
+    pub fn eval(&mut self, input: String) -> String {
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
         let mut repl = self.clone();
         repl.insert(eval_statement);
@@ -51,6 +48,6 @@ impl Repl {
         let code = repl.body.join("");
         self.cargo
             .run(code)
-            .expect("Error while evaluation expression");
+            .expect("Error while evaluation expression")
     }
 }

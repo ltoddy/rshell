@@ -64,7 +64,7 @@ impl Cargo {
             cleaned_content.push('\n');
         }
 
-        File::open(&toml_file).and_then(|mut file| write!(file, "{}", cleaned_content))
+        File::create(&toml_file).and_then(|mut file| write!(file, "{}", cleaned_content))
     }
 
     pub fn new(&self) -> io::Result<()> {
