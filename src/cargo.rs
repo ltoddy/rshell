@@ -96,7 +96,7 @@ impl Cargo {
 
     pub fn run(&self, code: String) -> io::Result<String> {
         let mut main = File::create(&self.main_file)?;
-        write!(main, "{}", code);
+        write!(main, "{}", code)?;
 
         let output = Command::new("cargo")
             .current_dir(&self.playground_dir)
