@@ -1,5 +1,4 @@
 use std::env::temp_dir;
-use std::ffi::OsStr;
 use std::fs::{remove_dir_all, File};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
@@ -43,9 +42,9 @@ impl Cargo {
 
         Command::new("cargo")
             .current_dir(&self.temp_dir)
-            .args(&[OsStr::new("new"), self.playground_dir.as_os_str()])
-            .spawn()?
-            .wait()?;
+            .arg("new")
+            .arg(self.playground_dir.as_os_str())
+            .output()?;
 
         Ok(())
     }
@@ -54,13 +53,12 @@ impl Cargo {
         Command::new("cargo")
             .current_dir(&self.playground_dir)
             .arg("build")
-            .spawn()?
-            .wait()?;
+            .output()?;
 
         Ok(())
     }
 
-    pub fn run(&self, code: String) -> io::Result<String> {
+    pub fn run(&self, code: String) -> io::Result<(String, String)> {
         let mut main = File::create(&self.main_file)?;
         write!(main, "{}", code)?;
 
@@ -72,10 +70,6 @@ impl Cargo {
         let stdout = String::from_utf8(output.stdout).expect("Invalid input(not UTF-8)");
         let stderr = String::from_utf8(output.stderr).expect("Invalid input(not UTF-8)");
 
-        if stdout.is_empty() {
-            Ok(stderr)
-        } else {
-            Ok(stdout)
-        }
+        Ok((stdout, stderr))
     }
 }

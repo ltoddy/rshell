@@ -1,9 +1,6 @@
-use std::io::{self, stdin, stdout, BufRead, BufReader, Write};
+use std::io::{self, stdin, stdout, BufRead, BufReader, Stdin, Write};
 
 use crate::repl::Repl;
-
-const IN: &str = "In: ";
-const OUT: &str = "Out: ";
 
 #[derive(Debug, Default)]
 pub struct Shell {
@@ -12,6 +9,9 @@ pub struct Shell {
 }
 
 impl Shell {
+    const IN: &'static str = "In: ";
+    const OUT: &'static str = "Out: ";
+
     pub fn new() -> Self {
         Self {
             buffer: String::with_capacity(1024),
@@ -19,27 +19,34 @@ impl Shell {
         }
     }
 
-    fn prepare(&self) -> io::Result<()> {
+    pub fn prepare(&self) -> io::Result<()> {
         self.repl.prepare_playground()?;
 
         Ok(())
     }
 
+    fn read(&mut self, reader: &mut BufReader<Stdin>) -> io::Result<String> {
+        print!("{}", Self::IN);
+        stdout().flush()?;
+
+        let mut buffer = String::with_capacity(64);
+        reader.read_line(&mut buffer)?;
+
+        Ok(buffer.trim().to_string())
+    }
+
     pub fn run(&mut self) -> io::Result<()> {
-        self.prepare()?;
         let mut reader = BufReader::new(stdin());
 
         loop {
-            self.buffer.clear();
-            print!("{}", IN);
-            stdout().flush()?;
-            reader.read_line(&mut self.buffer)?;
+            self.buffer = self.read(&mut reader)?;
 
-            if self.buffer.ends_with(";\n") {
+            if self.buffer.ends_with(";") {
                 self.repl.insert(self.buffer.drain(..).collect());
             } else {
-                let output = self.repl.eval(self.buffer.drain(..).collect());
-                println!("{}{}", OUT, output);
+                let (stdout_output, _stderr_output) =
+                    self.repl.eval(self.buffer.drain(..).collect());
+                println!("{}{}", Self::OUT, stdout_output);
             }
         }
     }

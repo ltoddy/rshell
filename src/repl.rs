@@ -40,7 +40,7 @@ impl Repl {
         format!("Current Repl Code:\n{}", self.body.clone().join(""))
     }
 
-    pub fn eval(&mut self, input: String) -> String {
+    pub fn eval(&mut self, input: String) -> (String, String) {
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
         let mut repl = self.clone();
         repl.insert(eval_statement);
