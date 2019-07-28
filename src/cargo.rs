@@ -2,7 +2,7 @@ use std::env::temp_dir;
 use std::fs::{remove_dir_all, File};
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::process::{Command, Output};
 
 #[derive(Clone, Debug)]
 pub struct Cargo {
@@ -33,6 +33,28 @@ impl Default for Cargo {
     }
 }
 
+macro_rules! execute_cargo_program {
+    ($current_dir: expr, $($arg: expr),*) => {
+        Command::new("cargo")
+                .current_dir($current_dir)
+                $(.arg($arg))*
+                .output()
+                .expect("Error while execute cargo program")
+    };
+
+    ($current_dir: expr, $($arg: expr,)*) => {
+        execute_cargo_program!($current_dir, $($arg),*)
+    };
+
+    ($($arg: expr),*) => {
+        execute_cargo_program!(std::env::current_dir().expect("Error can't get current dir"), $($arg),*)
+    };
+
+    ($($arg: expr,)*) => {
+        execute_cargo_program!(std::env::current_dir().expect("Error can't get current dir"), $($arg),*)
+    };
+}
+
 impl Cargo {
     #[allow(clippy::wrong_self_convention, clippy::new_ret_no_self)]
     pub fn new(&self) -> io::Result<()> {
@@ -40,20 +62,13 @@ impl Cargo {
             remove_dir_all(&self.playground_dir)?;
         }
 
-        Command::new("cargo")
-            .current_dir(&self.temp_dir)
-            .arg("new")
-            .arg(self.playground_dir.as_os_str())
-            .output()?;
+        execute_cargo_program!(&self.temp_dir, "new", &self.playground_dir);
 
         Ok(())
     }
 
     pub fn build(&self) -> io::Result<()> {
-        Command::new("cargo")
-            .current_dir(&self.playground_dir)
-            .arg("build")
-            .output()?;
+        execute_cargo_program!(&self.playground_dir, "build");
 
         Ok(())
     }
@@ -62,10 +77,7 @@ impl Cargo {
         let mut main = File::create(&self.main_file)?;
         write!(main, "{}", code)?;
 
-        let output = Command::new("cargo")
-            .current_dir(&self.playground_dir)
-            .arg("run")
-            .output()?;
+        let output: Output = execute_cargo_program!(&self.playground_dir, "run");
 
         let stdout = String::from_utf8(output.stdout).expect("Invalid input(not UTF-8)");
         let stderr = String::from_utf8(output.stderr).expect("Invalid input(not UTF-8)");
