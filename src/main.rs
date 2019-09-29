@@ -1,4 +1,5 @@
 pub mod cargo;
+pub mod error;
 pub mod repl;
 pub mod shell;
 

@@ -1,8 +1,10 @@
 use std::env::temp_dir;
 use std::fs::{remove_dir_all, File};
-use std::io::{self, Write};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
+
+use crate::error::Result;
 
 #[derive(Clone, Debug)]
 pub struct Cargo {
@@ -57,7 +59,7 @@ macro_rules! execute_cargo_program {
 
 impl Cargo {
     #[allow(clippy::wrong_self_convention, clippy::new_ret_no_self)]
-    pub fn new(&self) -> io::Result<()> {
+    pub fn new(&self) -> Result<()> {
         if Path::new(&self.playground_dir).exists() {
             remove_dir_all(&self.playground_dir)?;
         }
@@ -67,13 +69,13 @@ impl Cargo {
         Ok(())
     }
 
-    pub fn build(&self) -> io::Result<()> {
+    pub fn build(&self) -> Result<()> {
         execute_cargo_program!(&self.playground_dir, "build");
 
         Ok(())
     }
 
-    pub fn run(&self, code: String) -> io::Result<(String, String)> {
+    pub fn run(&self, code: String) -> Result<(String, String)> {
         let mut main = File::create(&self.main_file)?;
         write!(main, "{}", code)?;
 

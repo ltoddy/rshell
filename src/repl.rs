@@ -1,6 +1,5 @@
-use std::io;
-
 use crate::cargo::Cargo;
+use crate::error::Result;
 
 #[derive(Clone, Debug, Default)]
 pub struct Repl {
@@ -26,7 +25,7 @@ impl Repl {
     }
 
     #[inline]
-    pub fn prepare_playground(&self) -> io::Result<()> {
+    pub fn prepare_playground(&self) -> Result<()> {
         self.cargo.new()
     }
 

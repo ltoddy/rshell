@@ -1,5 +1,6 @@
-use std::io::{self, stdin, stdout, BufRead, BufReader, Stdin, Write};
+use std::io::{stdin, stdout, BufRead, BufReader, Stdin, Write};
 
+use crate::error::Result;
 use crate::repl::Repl;
 
 #[derive(Debug, Default)]
@@ -19,13 +20,13 @@ impl Shell {
         }
     }
 
-    pub fn prepare(&self) -> io::Result<()> {
+    pub fn prepare(&self) -> Result<()> {
         self.repl.prepare_playground()?;
 
         Ok(())
     }
 
-    fn read(&mut self, reader: &mut BufReader<Stdin>) -> io::Result<String> {
+    fn read(&mut self, reader: &mut BufReader<Stdin>) -> Result<String> {
         print!("{}", Self::IN);
         stdout().flush()?;
 
@@ -35,13 +36,13 @@ impl Shell {
         Ok(buffer.trim().to_string())
     }
 
-    pub fn run(&mut self) -> io::Result<()> {
+    pub fn run(&mut self) -> Result<()> {
         let mut reader = BufReader::new(stdin());
 
         loop {
             self.buffer = self.read(&mut reader)?;
 
-            if self.buffer.ends_with(";") {
+            if self.buffer.ends_with(';') {
                 self.repl.insert(self.buffer.drain(..).collect());
             } else {
                 let (stdout_output, _stderr_output) =
