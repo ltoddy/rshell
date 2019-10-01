@@ -39,6 +39,11 @@ impl Repl {
         format!("Current Repl Code:\n{}", self.body.clone().join(""))
     }
 
+    pub fn clear(&mut self) {
+        self.body = vec!["fn main() {\n".to_string(), "}".to_string()];
+        self.cursor = 0;
+    }
+
     pub fn eval(&mut self, input: String) -> (String, String) {
         let eval_statement = format!("println!(\"{{:?}}\", {{\n{}\n}});", input);
         let mut repl = self.clone();

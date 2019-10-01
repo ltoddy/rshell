@@ -1,6 +1,7 @@
 use std::io::{stdin, stdout, BufRead, BufReader, Stdin, Write};
 use std::process;
 
+use crate::command::BuiltinCommand;
 use crate::error::Result;
 use crate::repl::Repl;
 
@@ -48,7 +49,7 @@ impl Shell {
             }
 
             if self.buffer.starts_with(':') {
-                self.dispatch_builtin_command(&self.buffer);
+                self.dispatch_builtin_command();
             } else if self.buffer.ends_with(';') {
                 self.repl.insert(self.buffer.drain(..).collect());
             } else {
@@ -59,15 +60,26 @@ impl Shell {
         }
     }
 
-    fn dispatch_builtin_command(&self, command: &str) {
-        match command {
-            ":quit" | ":exit" => self.exit(),
-            _ => unreachable!(),
+    fn dispatch_builtin_command(&mut self) {
+        match BuiltinCommand::from(self.buffer.clone()) {
+            BuiltinCommand::Quit => self.exit(),
+            BuiltinCommand::ShowCode => self.show(),
+            BuiltinCommand::Clear => self.clear(),
         }
     }
 
     #[inline]
     fn exit(&self) {
         process::exit(0);
+    }
+
+    fn show(&self) {
+        let code = self.repl.show();
+        println!("{}", code);
+    }
+
+    #[inline]
+    fn clear(&mut self) {
+        self.repl.clear();
     }
 }
