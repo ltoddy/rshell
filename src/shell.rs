@@ -1,4 +1,5 @@
 use std::io::{stdin, stdout, BufRead, BufReader, Stdin, Write};
+use std::process;
 
 use crate::error::Result;
 use crate::repl::Repl;
@@ -42,7 +43,13 @@ impl Shell {
         loop {
             self.buffer = self.read(&mut reader)?;
 
-            if self.buffer.ends_with(';') {
+            if self.buffer.is_empty() {
+                continue;
+            }
+
+            if self.buffer.starts_with(':') {
+                self.dispatch_builtin_command(&self.buffer);
+            } else if self.buffer.ends_with(';') {
                 self.repl.insert(self.buffer.drain(..).collect());
             } else {
                 let (stdout_output, _stderr_output) =
@@ -50,5 +57,17 @@ impl Shell {
                 println!("{}{}", Self::OUT, stdout_output);
             }
         }
+    }
+
+    fn dispatch_builtin_command(&self, command: &str) {
+        match command {
+            ":quit" | ":exit" => self.exit(),
+            _ => unreachable!(),
+        }
+    }
+
+    #[inline]
+    fn exit(&self) {
+        process::exit(0);
     }
 }
