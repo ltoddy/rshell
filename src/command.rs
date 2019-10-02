@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum BuiltinCommand {
     Quit,
     ShowCode,
@@ -18,7 +18,7 @@ impl From<String> for BuiltinCommand {
 
 #[cfg(test)]
 mod test {
-    use crate::command::BuiltinCommand;
+    use super::BuiltinCommand;
 
     #[test]
     fn test_buildin_command_enum_basic() {

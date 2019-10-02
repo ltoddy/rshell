@@ -87,3 +87,18 @@ impl Cargo {
         Ok((stdout, stderr))
     }
 }
+
+#[cfg(test)]
+pub mod test {
+    use super::Cargo;
+    use std::path::Path;
+
+    #[test]
+    pub fn test_cargo_new_command_basic() {
+        let cargo: Cargo = Default::default();
+
+        assert!(Path::exists(&cargo.temp_dir));
+        assert!(Path::exists(&cargo.playground_dir));
+        assert!(Path::exists(&cargo.main_file));
+    }
+}
