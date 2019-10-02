@@ -1,5 +1,5 @@
 use std::env::temp_dir;
-use std::fs::{remove_dir_all, File};
+use std::fs::{remove_dir_all, OpenOptions};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
@@ -76,7 +76,13 @@ impl Cargo {
     }
 
     pub fn run(&self, code: String) -> Result<(String, String)> {
-        let mut main = File::create(&self.main_file)?;
+        println!("self  =====> : {:?}", self);
+        let mut main = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open(&self.main_file)?;
+
         write!(main, "{}", code)?;
 
         let output: Output = execute_cargo_program!(&self.playground_dir, "run");
@@ -90,15 +96,44 @@ impl Cargo {
 
 #[cfg(test)]
 pub mod test {
-    use super::Cargo;
+    use std::fs::File;
+    use std::io::{BufReader, Read};
     use std::path::Path;
+
+    use super::Cargo;
 
     #[test]
     pub fn test_cargo_new_command_basic() {
         let cargo: Cargo = Default::default();
+        cargo.new().unwrap();
 
         assert!(Path::exists(&cargo.temp_dir));
         assert!(Path::exists(&cargo.playground_dir));
         assert!(Path::exists(&cargo.main_file));
+    }
+
+    #[test]
+    pub fn test_cargo_new_command() {
+        let cargo: Cargo = Default::default();
+        cargo.new().unwrap();
+
+        let file = File::open(cargo.main_file).unwrap();
+        let mut reader = BufReader::new(file);
+        let mut buf = String::with_capacity(1024);
+        reader.read_to_string(&mut buf).unwrap();
+
+        assert_eq!(buf, ("fn main() {\n    println!(\"Hello, world!\");\n}\n"));
+    }
+
+    #[test]
+    pub fn test_cargo_run_command() {
+        let cargo: Cargo = Default::default();
+        cargo.new().unwrap();
+        cargo.build().unwrap();
+
+        let code = "fn main() {\n    println!(\"Hello, world!\");\n}\n";
+        let (std_out, _std_err) = cargo.run(code.to_owned()).unwrap();
+
+        assert_eq!("Hello, world!\n", std_out)
     }
 }
