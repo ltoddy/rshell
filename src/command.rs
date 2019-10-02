@@ -21,7 +21,7 @@ mod test {
     use super::BuiltinCommand;
 
     #[test]
-    fn test_buildin_command_enum_basic() {
+    fn test_builtin_command_enum_basic() {
         let input = String::from(":quit");
         assert_eq!(BuiltinCommand::from(input), BuiltinCommand::Quit);
 

@@ -76,7 +76,6 @@ impl Cargo {
     }
 
     pub fn run(&self, code: String) -> Result<(String, String)> {
-        println!("self  =====> : {:?}", self);
         let mut main = OpenOptions::new()
             .read(true)
             .write(true)
@@ -87,8 +86,8 @@ impl Cargo {
 
         let output: Output = execute_cargo_program!(&self.playground_dir, "run");
 
-        let stdout = String::from_utf8(output.stdout).expect("Invalid input(not UTF-8)");
-        let stderr = String::from_utf8(output.stderr).expect("Invalid input(not UTF-8)");
+        let stdout = String::from_utf8(output.stdout)?;
+        let stderr = String::from_utf8(output.stderr)?;
 
         Ok((stdout, stderr))
     }
