@@ -1,9 +1,3 @@
-pub mod cargo;
-pub mod command;
-pub mod error;
-pub mod repl;
-pub mod shell;
-
 use crate::shell::Shell;
 
 fn main() {
@@ -11,3 +5,9 @@ fn main() {
     shell.prepare().expect("Error while prepare rshell");
     shell.run().expect("Error while starting rshell");
 }
+
+pub mod cargo;
+pub mod command;
+pub mod error;
+pub mod repl;
+pub mod shell;

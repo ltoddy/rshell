@@ -30,8 +30,7 @@ impl Repl {
     }
 
     fn _reset(&mut self) {
-        self.prepare_playground()
-            .expect("Error while resetting repl");
+        self.prepare_playground().expect("Error while resetting repl");
         *self = Self::new();
     }
 
@@ -50,8 +49,6 @@ impl Repl {
         repl.insert(eval_statement);
 
         let code = repl.body.join("");
-        self.cargo
-            .run(code)
-            .expect("Error while evaluation expression")
+        self.cargo.run(code).expect("Error while evaluation expression")
     }
 }

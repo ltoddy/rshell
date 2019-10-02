@@ -1,7 +1,7 @@
 use std::io;
+use std::string::FromUtf8Error;
 
 use failure::Fail;
-use std::string::FromUtf8Error;
 
 #[derive(Debug, Fail)]
 pub enum RShellError {

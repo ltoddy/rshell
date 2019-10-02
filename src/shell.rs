@@ -53,8 +53,7 @@ impl Shell {
             } else if self.buffer.ends_with(';') {
                 self.repl.insert(self.buffer.drain(..).collect());
             } else {
-                let (stdout_output, _stderr_output) =
-                    self.repl.eval(self.buffer.drain(..).collect());
+                let (stdout_output, _stderr_output) = self.repl.eval(self.buffer.drain(..).collect());
                 println!("{}{}", Self::OUT, stdout_output);
             }
         }
