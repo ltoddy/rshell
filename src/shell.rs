@@ -2,7 +2,7 @@ use std::io::{stdin, stdout, BufRead, BufReader, Stdin, Write};
 use std::process;
 
 use crate::command::BuiltinCommand;
-use crate::error::Result;
+use crate::error::{RShellError, Result};
 use crate::repl::Repl;
 
 #[derive(Debug, Default)]
@@ -49,7 +49,10 @@ impl Shell {
             }
 
             if self.buffer.starts_with(':') {
-                self.dispatch_builtin_command();
+                if let Err(e) = self.dispatch_builtin_command() {
+                    println!("{}", e);
+                    continue;
+                }
             } else if self.buffer.ends_with(';') {
                 self.repl.insert(self.buffer.drain(..).collect());
             } else {
@@ -59,12 +62,15 @@ impl Shell {
         }
     }
 
-    fn dispatch_builtin_command(&mut self) {
+    fn dispatch_builtin_command(&mut self) -> Result<()> {
         match BuiltinCommand::from(self.buffer.clone()) {
-            BuiltinCommand::Quit => self.exit(),
+            BuiltinCommand::Exit => self.exit(),
             BuiltinCommand::ShowCode => self.show(),
             BuiltinCommand::Clear => self.clear(),
+            BuiltinCommand::Invalid(input) => return Err(RShellError::InvalidBuiltinCommand(input)),
         }
+
+        Ok(())
     }
 
     #[inline]

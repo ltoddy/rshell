@@ -12,6 +12,9 @@ pub enum RShellError {
     // UTF-8 error
     #[fail(display = "Invalid input(not UTF-8). {}", _0)]
     InvalidUTF8(#[cause] FromUtf8Error),
+
+    #[fail(display = "Invalid input: {}", _0)]
+    InvalidBuiltinCommand(String),
 }
 
 impl From<io::Error> for RShellError {
