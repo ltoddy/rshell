@@ -1,24 +1,31 @@
-use std::io::{stdin, stdout, BufRead, BufReader, Stdin, Write};
+use std::fmt::Display;
+use std::io::{BufRead, BufReader, BufWriter, Read, Write};
 use std::process;
 
 use crate::command::BuiltinCommand;
 use crate::error::{RShellError, Result};
 use crate::repl::Repl;
 
-#[derive(Debug, Default)]
-pub struct Shell {
+#[derive(Debug)]
+pub struct Shell<R, W: Write> {
     buffer: String,
     repl: Repl,
+
+    cin: BufReader<R>,
+    cout: BufWriter<W>,
 }
 
-impl Shell {
+impl<R: Read, W: Write> Shell<R, W> {
     const IN: &'static str = "In: ";
     const OUT: &'static str = "Out: ";
 
-    pub fn new() -> Self {
+    pub fn new(cin: R, cout: W) -> Self {
         Self {
             buffer: String::with_capacity(1024),
             repl: Repl::new(),
+
+            cin: BufReader::new(cin),
+            cout: BufWriter::new(cout),
         }
     }
 
@@ -28,21 +35,30 @@ impl Shell {
         Ok(())
     }
 
-    fn read(&mut self, reader: &mut BufReader<Stdin>) -> Result<String> {
-        print!("{}", Self::IN);
-        stdout().flush()?;
+    fn read(&mut self) -> Result<String> {
+        self.cout.write_all(Self::IN.as_bytes())?;
+        self.cout.flush()?;
 
         let mut buffer = String::with_capacity(64);
-        reader.read_line(&mut buffer)?;
+        self.cin.read_line(&mut buffer)?;
 
         Ok(buffer.trim().to_string())
     }
 
-    pub fn run(&mut self) -> Result<()> {
-        let mut reader = BufReader::new(stdin());
+    #[allow(dead_code)] // TODO: remove
+    fn write<T: Display>(&mut self, content: T) -> Result<()> {
+        write!(self.cout, "{}{}", Self::OUT, content)?;
+        Ok(())
+    }
 
+    fn writeln<T: Display>(&mut self, content: T) -> Result<()> {
+        writeln!(self.cout, "{}{}", Self::OUT, content)?;
+        Ok(())
+    }
+
+    pub fn run_forever(&mut self) -> Result<()> {
         loop {
-            self.buffer = self.read(&mut reader)?;
+            self.buffer = self.read()?;
 
             if self.buffer.is_empty() {
                 continue;
@@ -50,14 +66,14 @@ impl Shell {
 
             if self.buffer.starts_with(':') {
                 if let Err(e) = self.dispatch_builtin_command() {
-                    println!("{}", e);
+                    eprintln!("{}", e);
                     continue;
                 }
             } else if self.buffer.ends_with(';') {
                 self.repl.insert(self.buffer.drain(..).collect());
             } else {
                 let (stdout_output, _stderr_output) = self.repl.eval(self.buffer.drain(..).collect());
-                println!("{}{}", Self::OUT, stdout_output);
+                self.writeln(stdout_output)?;
             }
         }
     }

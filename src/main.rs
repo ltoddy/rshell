@@ -1,9 +1,11 @@
+use std::io::{stdin, stdout};
+
 use crate::shell::Shell;
 
 fn main() {
-    let mut shell = Shell::new();
+    let mut shell = Shell::new(stdin(), stdout());
     shell.prepare().expect("Error while prepare rshell");
-    shell.run().expect("Error while starting rshell");
+    shell.run_forever().expect("Error while starting rshell");
 }
 
 pub mod cargo;
