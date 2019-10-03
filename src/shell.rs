@@ -8,7 +8,6 @@ use crate::repl::Repl;
 
 #[derive(Debug)]
 pub struct Shell<R, W: Write> {
-    buffer: String,
     repl: Repl,
 
     cin: BufReader<R>,
@@ -21,7 +20,6 @@ impl<R: Read, W: Write> Shell<R, W> {
 
     pub fn new(cin: R, cout: W) -> Self {
         Self {
-            buffer: String::with_capacity(1024),
             repl: Repl::new(),
 
             cin: BufReader::new(cin),
@@ -58,28 +56,32 @@ impl<R: Read, W: Write> Shell<R, W> {
 
     pub fn run_forever(&mut self) -> Result<()> {
         loop {
-            self.buffer = self.read()?;
+            let buffer = self.read()?;
 
-            if self.buffer.is_empty() {
+            self.cout.flush()?;
+
+            if buffer.is_empty() {
                 continue;
             }
 
-            if self.buffer.starts_with(':') {
-                if let Err(e) = self.dispatch_builtin_command() {
-                    eprintln!("{}", e);
-                    continue;
-                }
-            } else if self.buffer.ends_with(';') {
-                self.repl.insert(self.buffer.drain(..).collect());
+            if buffer.starts_with(':') {
+                let _ = self
+                    .dispatch_builtin_command(buffer)
+                    .map_err(|e: RShellError| eprintln!("{}", e));
+                continue;
+            }
+
+            if buffer.ends_with(';') {
+                self.repl.insert(buffer);
             } else {
-                let (stdout_output, _stderr_output) = self.repl.eval(self.buffer.drain(..).collect());
+                let (stdout_output, _stderr_output) = self.repl.eval(buffer);
                 self.writeln(stdout_output)?;
             }
         }
     }
 
-    fn dispatch_builtin_command(&mut self) -> Result<()> {
-        match BuiltinCommand::from(self.buffer.clone()) {
+    fn dispatch_builtin_command(&mut self, command: String) -> Result<()> {
+        match BuiltinCommand::from(command) {
             BuiltinCommand::Exit => self.exit(),
             BuiltinCommand::ShowCode => self.show(),
             BuiltinCommand::Clear => self.clear(),
